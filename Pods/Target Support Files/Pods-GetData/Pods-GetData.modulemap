@@ -1,0 +1,6 @@
+module Pods_GetData {
+  umbrella header "Pods-GetData-umbrella.h"
+
+  export *
+  module * { export * }
+}
