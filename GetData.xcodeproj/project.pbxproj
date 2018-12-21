@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		294367D1A91BC90BB0777D7A /* libPods-GetData.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A85244D3B5B30EE434BB382E /* libPods-GetData.a */; };
+		AE0C3FC921CA687E007C4CC4 /* list.json in Resources */ = {isa = PBXBuildFile; fileRef = AE0C3FC821CA687E007C4CC4 /* list.json */; };
+		AE0C3FCC21CB1843007C4CC4 /* VideoModel.m in Sources */ = {isa = PBXBuildFile; fileRef = AE0C3FCB21CB1843007C4CC4 /* VideoModel.m */; };
 		AEFA0A6B21BA51C300028AC8 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = AEFA0A6A21BA51C300028AC8 /* AppDelegate.m */; };
 		AEFA0A6E21BA51C300028AC8 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AEFA0A6D21BA51C300028AC8 /* ViewController.m */; };
 		AEFA0A7121BA51C300028AC8 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AEFA0A6F21BA51C300028AC8 /* Main.storyboard */; };
@@ -20,6 +22,9 @@
 
 /* Begin PBXFileReference section */
 		A85244D3B5B30EE434BB382E /* libPods-GetData.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-GetData.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE0C3FC821CA687E007C4CC4 /* list.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = list.json; sourceTree = "<group>"; };
+		AE0C3FCA21CB1843007C4CC4 /* VideoModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoModel.h; sourceTree = "<group>"; };
+		AE0C3FCB21CB1843007C4CC4 /* VideoModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VideoModel.m; sourceTree = "<group>"; };
 		AEFA0A6621BA51C300028AC8 /* GetData.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GetData.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AEFA0A6921BA51C300028AC8 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		AEFA0A6A21BA51C300028AC8 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -80,12 +85,15 @@
 			isa = PBXGroup;
 			children = (
 				AEFA0A8221BA739700028AC8 /* 224.json */,
+				AE0C3FC821CA687E007C4CC4 /* list.json */,
 				AEFA0A6921BA51C300028AC8 /* AppDelegate.h */,
 				AEFA0A6A21BA51C300028AC8 /* AppDelegate.m */,
 				AEFA0A6C21BA51C300028AC8 /* ViewController.h */,
 				AEFA0A6D21BA51C300028AC8 /* ViewController.m */,
 				AEFA0A7F21BA6C2F00028AC8 /* CategoryModel.h */,
 				AEFA0A8021BA6C2F00028AC8 /* CategoryModel.m */,
+				AE0C3FCA21CB1843007C4CC4 /* VideoModel.h */,
+				AE0C3FCB21CB1843007C4CC4 /* VideoModel.m */,
 				AEFA0A6F21BA51C300028AC8 /* Main.storyboard */,
 				AEFA0A7221BA51C400028AC8 /* Assets.xcassets */,
 				AEFA0A7421BA51C400028AC8 /* LaunchScreen.storyboard */,
@@ -164,6 +172,7 @@
 				AEFA0A8321BA739700028AC8 /* 224.json in Resources */,
 				AEFA0A7621BA51C400028AC8 /* LaunchScreen.storyboard in Resources */,
 				AEFA0A7321BA51C400028AC8 /* Assets.xcassets in Resources */,
+				AE0C3FC921CA687E007C4CC4 /* list.json in Resources */,
 				AEFA0A7121BA51C300028AC8 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -197,6 +206,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AEFA0A6E21BA51C300028AC8 /* ViewController.m in Sources */,
+				AE0C3FCC21CB1843007C4CC4 /* VideoModel.m in Sources */,
 				AEFA0A8121BA6C2F00028AC8 /* CategoryModel.m in Sources */,
 				AEFA0A7921BA51C400028AC8 /* main.m in Sources */,
 				AEFA0A6B21BA51C300028AC8 /* AppDelegate.m in Sources */,

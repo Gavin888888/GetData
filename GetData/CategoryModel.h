@@ -13,7 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface CategoryModel : NSObject
 @property(nonatomic,strong) NSString *categoryId;
 @property(nonatomic,strong) NSString *categoryName;
-@property(nonatomic,strong) NSArray *videos;
+@property(nonatomic,strong) NSString *categoryImgUrl;
+@property(nonatomic,assign) int allplayCount;
 @end
 
 NS_ASSUME_NONNULL_END
