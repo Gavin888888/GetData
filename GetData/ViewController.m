@@ -11,14 +11,20 @@
 #import <NSObject+LKDBHelper.h>
 #import "CategoryModel.h"
 #import "VideoModel.h"
+#import <AVFoundation/AVAsset.h>
+#import <AVFoundation/AVAssetImageGenerator.h>
+#import <AVFoundation/AVTime.h>
+
 @interface ViewController ()
 {
     int download_index;
+    int thumb_index;
 }
 @property(nonatomic,strong) UILabel *titleLabel;
 @property(nonatomic,strong) UILabel *videourlLabel;
 @property(nonatomic,strong) UIProgressView *downloadProgress;
 @property(nonatomic,strong) UILabel *progressLabel;
+@property(nonatomic,strong) UIImageView *thumbImageView;
 
 /** 下载任务 */
 @property (nonatomic, strong) NSURLSessionDownloadTask *downloadTask;
@@ -71,8 +77,77 @@
     [self.view addSubview:_progressLabel];
     
 //    download_index = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"download_index"];
-    download_index = 952;
+    download_index = 2230;
+    
+    UIButton *btn3 = [UIButton buttonWithType:UIButtonTypeCustom];
+    [btn3 setTitle:@"获取截图" forState:UIControlStateNormal];
+    btn3.frame = CGRectMake(100, 360, 200, 50);
+    btn3.backgroundColor = [UIColor yellowColor];
+    [btn3 addTarget:self action:@selector(thumbnailImageBtnClick) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:btn3];
+    
+    self.thumbImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0,CGRectGetHeight([UIScreen mainScreen].bounds)-200, CGRectGetWidth([UIScreen mainScreen].bounds), 200)];
+    _thumbImageView.contentMode = UIViewContentModeScaleAspectFit;
+    [self.view addSubview:_thumbImageView];
 }
+-(void)thumbnailImageBtnClick{
+    NSArray *categorys = [VideoModel searchWithSQL:@"select * from VideoModel"];
+    VideoModel *video = categorys[thumb_index];
+    NSString * docsdir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSString * rarFilePath = [docsdir stringByAppendingPathComponent:[NSString stringWithFormat:@"videofile/%@",video.categoryId]];//将需要创建的串拼接到后面
+    NSString * dataFilePath = [rarFilePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4",video.videoId]];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL isDir = NO;
+    // fileExistsAtPath 判断一个文件或目录是否有效，isDirectory判断是否一个目录
+    BOOL existed = [fileManager fileExistsAtPath:dataFilePath isDirectory:&isDir];
+    
+    if ((dataFilePath && existed == YES) ) {
+        NSURL *url = [NSURL fileURLWithPath:dataFilePath];
+        UIImage *fileImage = [ViewController thumbnailImageForVideo:url atTime:500];
+        self.thumbImageView.image = fileImage;
+        //获取Document文件
+        NSString * docsdir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+        NSString * rarFilePath = [docsdir stringByAppendingPathComponent:[NSString stringWithFormat:@"thumbImages/%@",video.categoryId]];//将需要创建的串拼接到后面
+        NSString * dataFilePath = [rarFilePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.png",video.videoId]];
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        BOOL isDir = NO;
+        // fileExistsAtPath 判断一个文件或目录是否有效，isDirectory判断是否一个目录
+        BOOL existed = [fileManager fileExistsAtPath:rarFilePath isDirectory:&isDir];
+        if ( !(isDir == YES && existed == YES) ) {//如果文件夹不存在
+            [fileManager createDirectoryAtPath:rarFilePath withIntermediateDirectories:YES attributes:nil error:nil];
+        }
+        // Write image to PNG
+        [UIImagePNGRepresentation(fileImage) writeToFile:dataFilePath atomically:YES];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            self->thumb_index++;
+            [self thumbnailImageBtnClick];
+        });
+    }else{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            self->thumb_index++;
+            [self thumbnailImageBtnClick];
+        });
+    }
+}
++ (UIImage*)thumbnailImageForVideo:(NSURL *)videoURL atTime:(NSTimeInterval)time {
+    NSDictionary *opts = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:NO]
+                                                     forKey:AVURLAssetPreferPreciseDurationAndTimingKey];
+    AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:videoURL options:opts];
+    NSParameterAssert(asset);
+    AVAssetImageGenerator *assetImageGenerator =[[AVAssetImageGenerator alloc] initWithAsset:asset];
+    assetImageGenerator.appliesPreferredTrackTransform = YES;
+    assetImageGenerator.apertureMode = AVAssetImageGeneratorApertureModeEncodedPixels;
+    
+    CGImageRef thumbnailImageRef = NULL;
+    CFTimeInterval thumbnailImageTime = time;
+    NSError *thumbnailImageGenerationError = nil;
+    thumbnailImageRef = [assetImageGenerator copyCGImageAtTime:CMTimeMake(thumbnailImageTime, 60)actualTime:NULL error:&thumbnailImageGenerationError];
+    if(!thumbnailImageRef)
+        NSLog(@"thumbnailImageGenerationError %@",thumbnailImageGenerationError);
+    UIImage*thumbnailImage = thumbnailImageRef ? [[UIImage alloc]initWithCGImage: thumbnailImageRef] : nil;
+    return thumbnailImage;
+}
+
 -(void)btnCateGoryBtnClick{
     [LKDBHelper clearTableData:NSClassFromString(@"CategoryModel")];
     NSDictionary *list = [ViewController json2Dictionary];
@@ -121,7 +196,7 @@
 }
 -(void)downloadVideoBtnClick{
     @try {
-        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0); //创建信号量
+//        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0); //创建信号量
         NSArray *categorys = [VideoModel searchWithSQL:@"select * from VideoModel"];
         VideoModel *video = categorys[download_index];
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -151,80 +226,83 @@
          */
         __weak ViewController *weakself = self;
         NSURLSessionDataTask *dataTask = [session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-            
-            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
-            NSLog(@"%@",dict);
-            NSString *videoURL = dict[@"url"];
-            
-            if (error || videoURL == nil) {
-                dispatch_semaphore_signal(semaphore);   //发送信号
+            if (error) {
+                [dataTask cancel];
                 [weakself downloadVideoBtnClick];
-                return;
-            }
-            
-            //远程地址
-            NSURL *URL = [NSURL URLWithString:videoURL];
-            //默认配置
-            NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
-            
-            //AFN3.0+基于封住URLSession的句柄
-            AFURLSessionManager *manager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
-            
-            //请求
-            NSURLRequest *request = [NSURLRequest requestWithURL:URL];
-            
-            //下载Task操作
-            self.downloadTask = [manager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
+            }else{
+                NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+                NSLog(@"%@",dict);
+                NSString *videoURL = dict[@"url"];
                 
-                // @property int64_t totalUnitCount;     需要下载文件的总大小
-                // @property int64_t completedUnitCount; 当前已经下载的大小
-                
-                // 给Progress添加监听 KVO
-                NSLog(@"%f",1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount);
-                // 回到主队列刷新UI
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    // 设置进度条的百分比
-                    self.progressLabel.text = [NSString stringWithFormat:@"%.2f",1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount];
-                    self.downloadProgress.progress = 1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount;
-                });
-                
-            } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-                
-                //- block的返回值, 要求返回一个URL, 返回的这个URL就是文件的位置的路径
-                dispatch_semaphore_signal(semaphore);   //发送信号
-                [weakself downloadVideoBtnClick];
-                
-                //获取Document文件
-                NSString * docsdir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-                NSString * rarFilePath = [docsdir stringByAppendingPathComponent:[NSString stringWithFormat:@"videofile/%@",video.categoryId]];//将需要创建的串拼接到后面
-                NSString * dataFilePath = [rarFilePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4",video.videoId]];
-                NSFileManager *fileManager = [NSFileManager defaultManager];
-                BOOL isDir = NO;
-                // fileExistsAtPath 判断一个文件或目录是否有效，isDirectory判断是否一个目录
-                BOOL existed = [fileManager fileExistsAtPath:rarFilePath isDirectory:&isDir];
-                if ( !(isDir == YES && existed == YES) ) {//如果文件夹不存在
-                    [fileManager createDirectoryAtPath:rarFilePath withIntermediateDirectories:YES attributes:nil error:nil];
+                if (videoURL == nil) {
+                    [dataTask cancel];
+                    [weakself downloadVideoBtnClick];
+                }else{
+                    //远程地址
+                    NSURL *URL = [NSURL URLWithString:videoURL];
+                    //默认配置
+                    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+                    
+                    //AFN3.0+基于封住URLSession的句柄
+                    AFURLSessionManager *manager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
+                    
+                    //请求
+                    NSURLRequest *request = [NSURLRequest requestWithURL:URL];
+                    
+                    //下载Task操作
+                    self.downloadTask = [manager downloadTaskWithRequest:request progress:^(NSProgress * _Nonnull downloadProgress) {
+                        
+                        // @property int64_t totalUnitCount;     需要下载文件的总大小
+                        // @property int64_t completedUnitCount; 当前已经下载的大小
+                        
+                        // 给Progress添加监听 KVO
+                        NSLog(@"%f",1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount);
+                        // 回到主队列刷新UI
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            // 设置进度条的百分比
+                            self.progressLabel.text = [NSString stringWithFormat:@"%.2f",1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount];
+                            self.downloadProgress.progress = 1.0 * downloadProgress.completedUnitCount / downloadProgress.totalUnitCount;
+                        });
+                        
+                    } destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
+                        
+                        //- block的返回值, 要求返回一个URL, 返回的这个URL就是文件的位置的路径
+                        //                    dispatch_semaphore_signal(semaphore);   //发送信号
+                        [weakself downloadVideoBtnClick];
+                        
+                        //获取Document文件
+                        NSString * docsdir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+                        NSString * rarFilePath = [docsdir stringByAppendingPathComponent:[NSString stringWithFormat:@"videofile/%@",video.categoryId]];//将需要创建的串拼接到后面
+                        NSString * dataFilePath = [rarFilePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4",video.videoId]];
+                        NSFileManager *fileManager = [NSFileManager defaultManager];
+                        BOOL isDir = NO;
+                        // fileExistsAtPath 判断一个文件或目录是否有效，isDirectory判断是否一个目录
+                        BOOL existed = [fileManager fileExistsAtPath:rarFilePath isDirectory:&isDir];
+                        if ( !(isDir == YES && existed == YES) ) {//如果文件夹不存在
+                            [fileManager createDirectoryAtPath:rarFilePath withIntermediateDirectories:YES attributes:nil error:nil];
+                        }
+                        //            if (!(dataIsDir == YES && dataExisted == YES) ) {
+                        //                [fileManager createDirectoryAtPath:dataFilePath withIntermediateDirectories:YES attributes:nil error:nil];
+                        //            }
+                        //
+                        //
+                        //            //suggestedFilename
+                        //            NSString *cachesPath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
+                        //
+                        //            NSString *path = [cachesPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4",video.videoName]];
+                        return [NSURL fileURLWithPath:dataFilePath];
+                        
+                    } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
+                        //设置下载完成操作
+                        
+                    }];
+                    [self.downloadTask resume];
                 }
-                //            if (!(dataIsDir == YES && dataExisted == YES) ) {
-                //                [fileManager createDirectoryAtPath:dataFilePath withIntermediateDirectories:YES attributes:nil error:nil];
-                //            }
-                //
-                //
-                //            //suggestedFilename
-                //            NSString *cachesPath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject];
-                //
-                //            NSString *path = [cachesPath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4",video.videoName]];
-                return [NSURL fileURLWithPath:dataFilePath];
-                
-            } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
-                //设置下载完成操作
-                
-            }];
-            [self.downloadTask resume];
+            }
         }];
         //7.执行任务
         [dataTask resume];
-        dispatch_semaphore_wait(semaphore,DISPATCH_TIME_FOREVER);  //等待
+//        dispatch_semaphore_wait(semaphore,DISPATCH_TIME_FOREVER);  //等待
     } @catch (NSException *exception) {
         [[NSUserDefaults standardUserDefaults] setInteger:download_index forKey:@"download_index"];
         [[NSUserDefaults standardUserDefaults] synchronize];
