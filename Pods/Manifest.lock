@@ -17,10 +17,13 @@ PODS:
   - FMDB (2.7.5):
     - FMDB/standard (= 2.7.5)
   - FMDB/standard (2.7.5)
+  - HappyDNS (0.3.14)
   - LKDBHelper (2.5.1):
     - LKDBHelper/standard (= 2.5.1)
   - LKDBHelper/standard (2.5.1):
     - FMDB
+  - Qiniu (7.2.5):
+    - HappyDNS (~> 0.3)
   - SDWebImage (5.0.0-beta3):
     - SDWebImage/Core (= 5.0.0-beta3)
   - SDWebImage/Core (5.0.0-beta3)
@@ -28,21 +31,26 @@ PODS:
 DEPENDENCIES:
   - AFNetworking (~> 3.2.1)
   - LKDBHelper (~> 2.5.1)
+  - Qiniu (~> 7.2.5)
   - SDWebImage (~> 5.0.0-beta3)
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - AFNetworking
     - FMDB
+    - HappyDNS
     - LKDBHelper
+    - Qiniu
     - SDWebImage
 
 SPEC CHECKSUMS:
   AFNetworking: b6f891fdfaed196b46c7a83cf209e09697b94057
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
+  HappyDNS: dc6a164ee81979093123c241c6353bcf0218add6
   LKDBHelper: 9a276ba51f2e16263d46a9517e16cc9b03472664
+  Qiniu: 909b408ee489ea54827e9717be90b94bc9dfbc48
   SDWebImage: e52654ceef9fdc19f4c612d64a5b6d3f05dd81a4
 
-PODFILE CHECKSUM: 34a0439a711b791ad094beac55c15c0f0694241e
+PODFILE CHECKSUM: 9da427acb7ac5cea594fc8ca21b29280e77e515b
 
 COCOAPODS: 1.5.3

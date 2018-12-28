@@ -7,6 +7,11 @@
 //
 
 #import "AppDelegate.h"
+#import "GCQiniuUploadManager.h"
+
+static NSString *CJQiNiuScope = @"tangshi";
+static NSString *CJQiNiuAccessKey = @"uaAAYE51BJTxITAGyEdIFFECFzq2VT8HZPJ4dtWh";
+static NSString *CJQiNiuSecretKey = @"ckRW_2ECvdK6_uhBIm35Io41ZsZ1cV-7nqwY4JVc";
 
 @interface AppDelegate ()
 
@@ -14,12 +19,19 @@
 
 @implementation AppDelegate
 
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    [self registerQiNiuToken];
+    
     return YES;
 }
 
+- (void)registerQiNiuToken {
+    [[GCQiniuUploadManager sharedInstance] registerWithScope:CJQiNiuScope
+                                                   accessKey:CJQiNiuAccessKey
+                                                   secretKey:CJQiNiuSecretKey];
+    [[GCQiniuUploadManager sharedInstance] createToken];
+}
 
 - (void)applicationWillResignActive:(UIApplication *)application {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.

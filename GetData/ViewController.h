@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-
+#import "GCQiniuUploadManager.h"
 @interface ViewController : UIViewController
 
 

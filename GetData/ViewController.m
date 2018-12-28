@@ -14,6 +14,7 @@
 #import <AVFoundation/AVAsset.h>
 #import <AVFoundation/AVAssetImageGenerator.h>
 #import <AVFoundation/AVTime.h>
+#import <QiniuSDK.h>
 
 @interface ViewController ()
 {
@@ -89,6 +90,34 @@
     self.thumbImageView = [[UIImageView alloc] initWithFrame:CGRectMake(0,CGRectGetHeight([UIScreen mainScreen].bounds)-200, CGRectGetWidth([UIScreen mainScreen].bounds), 200)];
     _thumbImageView.contentMode = UIViewContentModeScaleAspectFit;
     [self.view addSubview:_thumbImageView];
+    
+    
+    UIButton *btn4 = [UIButton buttonWithType:UIButtonTypeCustom];
+    [btn4 setTitle:@"上传到七牛" forState:UIControlStateNormal];
+    btn4.frame = CGRectMake(100, 410, 200, 50);
+    btn4.backgroundColor = [UIColor purpleColor];
+    [btn4 addTarget:self action:@selector(uploadqiniuBtnClick) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:btn4];
+}
+static int i = 0;
+-(void)uploadqiniuBtnClick
+{
+    NSArray *categorys = [VideoModel searchWithSQL:@"select * from VideoModel"];
+    VideoModel *video = categorys[i];
+    i++;
+    NSString * docsdir = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+    NSString * rarFilePath = [docsdir stringByAppendingPathComponent:[NSString stringWithFormat:@"videofile/%@",video.categoryId]];//将需要创建的串拼接到后面
+    NSString * dataFilePath = [rarFilePath stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp4",video.videoId]];
+    NSURL *url = [NSURL fileURLWithPath:dataFilePath];
+    NSData *video_data = [NSData dataWithContentsOfURL:url options:0 error:nil];
+    
+    [[GCQiniuUploadManager sharedInstance] uploadData:video_data fileName:video.videoId progress:^(float percent) {
+        NSLog(@"---%f",percent);
+    } completion:^(NSError *error, NSString *link, NSInteger index) {
+        NSLog(@"---%@",link);
+        wait(1);
+        [self uploadqiniuBtnClick];
+    }];
 }
 -(void)thumbnailImageBtnClick{
     NSArray *categorys = [VideoModel searchWithSQL:@"select * from VideoModel"];
